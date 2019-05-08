@@ -121,7 +121,7 @@ func main() {
 
 	{{ .Func }}(txn)
 
-	err = goose.FinalizeMigration(&conf, txn, {{ .Direction }}, {{ .VersionID }})
+	err = goose.FinalizeMigration(&conf, txn, {{ .Direction }}, {{ .Version }})
 	if err != nil {
 		log.Fatal("Commit() failed:", err)
 	}
