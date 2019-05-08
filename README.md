@@ -9,11 +9,11 @@ You can manage your database's evolution by creating incremental SQL or Go scrip
 
 # Install
 
-    $ go get github.com/Altoros/gorm-goose/cmd/gorm-goose
+    $ go get github.com/muzige2000/gorm-goose/cmd/gorm-goose
 
 This will install the `gorm-goose` binary to your `$GOPATH/bin` directory.
 
-You can also build gorm-goose into your own applications by importing `github.com/Altoros/gorm-goose/lib/gorm-goose`.
+You can also build gorm-goose into your own applications by importing `github.com/muzige2000/gorm-goose/lib/gorm-goose`.
 
 # Usage
 
@@ -210,7 +210,7 @@ These instructions assume that you're using [Keith Rarick's Heroku Go buildpack]
 // note: need at least one blank line after build constraint
 package main
 
-import _ "github.com/Altoros/gorm-goose/cmd/gorm-goose"
+import _ "github.com/muzige2000/gorm-goose/cmd/gorm-goose"
 ```
 
 [Set up your Heroku database(s) as usual.](https://devcenter.heroku.com/articles/heroku-postgresql)

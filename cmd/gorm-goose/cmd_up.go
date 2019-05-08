@@ -1,9 +1,8 @@
 package main
 
 import (
+	"github.com/muzige2000/gorm-goose/lib/gorm-goose"
 	"log"
-
-	goose "github.com/Altoros/gorm-goose/lib/gorm-goose"
 )
 
 var upCmd = &Command{
@@ -21,12 +20,12 @@ func upRun(cmd *Command, args ...string) {
 		log.Fatal(err)
 	}
 
-	target, err := goose.GetMostRecentDBVersion(conf.MigrationsDir)
+	target, err := gormgoose.GetMostRecentDBVersion(conf.MigrationsDir)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := goose.RunMigrations(conf, conf.MigrationsDir, target); err != nil {
+	if err := gormgoose.RunMigrations(conf, conf.MigrationsDir, target); err != nil {
 		log.Fatal(err)
 	}
 }

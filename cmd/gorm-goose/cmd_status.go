@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"time"
 
-	goose "github.com/Altoros/gorm-goose/lib/gorm-goose"
 	"github.com/jinzhu/gorm"
 )
 
@@ -33,19 +32,19 @@ func statusRun(cmd *Command, args ...string) {
 	// collect all migrations
 	min := int64(0)
 	max := int64((1 << 63) - 1)
-	migrations, e := goose.CollectMigrations(conf.MigrationsDir, min, max)
+	migrations, e := pkg.CollectMigrations(conf.MigrationsDir, min, max)
 	if e != nil {
 		log.Fatal(e)
 	}
 
-	db, e := goose.OpenDBFromDBConf(conf)
+	db, e := pkg.OpenDBFromDBConf(conf)
 	if e != nil {
 		log.Fatal("couldn't open DB:", e)
 	}
 	defer db.Close()
 
 	// must ensure that the version table exists if we're running on a pristine DB
-	if _, e := goose.EnsureDBVersion(conf, db); e != nil {
+	if _, e := pkg.EnsureDBVersion(conf, db); e != nil {
 		log.Fatal(e)
 	}
 
@@ -58,7 +57,7 @@ func statusRun(cmd *Command, args ...string) {
 }
 
 func printMigrationStatus(db *gorm.DB, version int64, script string) {
-	row := goose.MigrationRecord{}
+	row := pkg.MigrationRecord{}
 	result := db.Where("version_id = ?", version).Order("t_stamp desc").First(&row)
 
 	if result.Error != nil && !result.RecordNotFound() {

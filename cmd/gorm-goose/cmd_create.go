@@ -2,12 +2,11 @@ package main
 
 import (
 	"fmt"
+	"github.com/muzige2000/gorm-goose/lib/gorm-goose"
 	"log"
 	"os"
 	"path/filepath"
 	"time"
-
-	goose "github.com/Altoros/gorm-goose/lib/gorm-goose"
 )
 
 var createCmd = &Command{
@@ -38,7 +37,7 @@ func createRun(cmd *Command, args ...string) {
 		log.Fatal(err)
 	}
 
-	n, err := goose.CreateMigration(args[0], migrationType, conf.MigrationsDir, time.Now())
+	n, err := gormgoose.CreateMigration(args[0], migrationType, conf.MigrationsDir, time.Now())
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -3,6 +3,7 @@ package gormgoose
 import (
 	"errors"
 	"fmt"
+	"github.com/ahl5esoft/golang-underscore"
 	"log"
 	"os"
 	"path/filepath"
@@ -102,6 +103,50 @@ func RunMigrationsOnDb(conf *DBConf, migrationsDir string, target int64, db *gor
 	return nil
 }
 
+// Runs merge migration on a specific database instance.
+func RunMergeMigrations(conf *DBConf, migrationsDir string, db *gorm.DB) (err error) {
+	migrationRecords, err := MigrationRecords(conf, db)
+	if err != nil {
+		return err
+	}
+
+	migrations, err := NeedMigrations(migrationsDir, migrationRecords)
+	if err != nil {
+		return err
+	}
+
+	lastMigrationRecord := underscore.Last(migrationRecords).(MigrationRecord)
+	if len(migrations) == 0 {
+		fmt.Printf("goose: no migrations to run. migrationRecords version: %d\n", lastMigrationRecord.VersionId)
+		return nil
+	}
+
+	direction := true
+	ms := migrationSorter(migrations)
+	ms.Sort(direction)
+
+	fmt.Printf("goose: migrating db environment '%v', migrationRecords version: %d\n",
+		conf.Env, lastMigrationRecord.VersionId)
+
+	for _, m := range ms {
+
+		switch filepath.Ext(m.Source) {
+		case ".go":
+			err = runGoMigration(conf, m.Source, m.Version, direction)
+		case ".sql":
+			err = runSQLMigration(conf, db, m.Source, m.Version, direction)
+		}
+
+		if err != nil {
+			return errors.New(fmt.Sprintf("FAIL %v, quitting migration", err))
+		}
+
+		fmt.Println("OK   ", filepath.Base(m.Source))
+	}
+
+	return nil
+}
+
 // collect all the valid looking migration scripts in the
 // migrations folder, and key them by version
 func CollectMigrations(dirpath string, current, target int64) (m []*Migration, err error) {
@@ -109,7 +154,7 @@ func CollectMigrations(dirpath string, current, target int64) (m []*Migration, e
 	// extract the numeric component of each migration,
 	// filter out any uninteresting files,
 	// and ensure we only have one file per migration version.
-	filepath.Walk(dirpath, func(name string, info os.FileInfo, err error) error {
+	err = filepath.Walk(dirpath, func(name string, info os.FileInfo, err error) error {
 
 		if v, e := NumericComponent(name); e == nil {
 
@@ -127,6 +172,25 @@ func CollectMigrations(dirpath string, current, target int64) (m []*Migration, e
 
 		return nil
 	})
+
+	return m, err
+}
+
+// collect all the not migrated migration scirpts in the migrations folder, and by version
+func NeedMigrations(dirpath string, currentMigarations []MigrationRecord) (m []*Migration, err error) {
+	res := underscore.IndexBy(currentMigarations, "VersionId").(map[int64]MigrationRecord)
+
+	err = filepath.Walk(dirpath, func(name string, info os.FileInfo, err error) error {
+		if v, e := NumericComponent(name); e == nil {
+			if _, exist := res[v]; !exist {
+				m = append(m, newMigration(v, name))
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return m, err
+	}
 
 	return m, nil
 }
@@ -230,6 +294,16 @@ func EnsureDBVersion(conf *DBConf, db *gorm.DB) (int64, error) {
 	}
 
 	panic("failure in EnsureDBVersion()")
+}
+
+// EnsureDBVersion retrieve the current version for this DB.
+// Create and initialize the DB version table if it doesn't exist.
+func MigrationRecords(conf *DBConf, db *gorm.DB) (ms []MigrationRecord, err error) {
+	err = db.Order("id desc").Find(&ms).Error
+
+	if err != nil {
+		return ms, createVersionTable(conf, db)
+	}
 }
 
 // Create the goose_db_version table
@@ -398,5 +472,4 @@ var sqlMigrationTemplate = template.Must(template.New("goose.sql-migration").Par
 
 -- +goose Down
 -- SQL section 'Down' is executed when this migration is rolled back
-
 `))

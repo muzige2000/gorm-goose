@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-
-	goose "github.com/Altoros/gorm-goose/lib/gorm-goose"
 )
 
 var dbVersionCmd = &Command{
@@ -21,7 +19,7 @@ func dbVersionRun(cmd *Command, args ...string) {
 		log.Fatal(err)
 	}
 
-	current, err := goose.GetDBVersion(conf)
+	current, err := pkg.GetDBVersion(conf)
 	if err != nil {
 		log.Fatal(err)
 	}

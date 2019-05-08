@@ -2,8 +2,6 @@ package main
 
 import (
 	"log"
-
-	goose "github.com/Altoros/gorm-goose/lib/gorm-goose"
 )
 
 var redoCmd = &Command{
@@ -20,21 +18,21 @@ func redoRun(cmd *Command, args ...string) {
 		log.Fatal(err)
 	}
 
-	current, err := goose.GetDBVersion(conf)
+	current, err := pkg.GetDBVersion(conf)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	previous, err := goose.GetPreviousDBVersion(conf.MigrationsDir, current)
+	previous, err := pkg.GetPreviousDBVersion(conf.MigrationsDir, current)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := goose.RunMigrations(conf, conf.MigrationsDir, previous); err != nil {
+	if err := pkg.RunMigrations(conf, conf.MigrationsDir, previous); err != nil {
 		log.Fatal(err)
 	}
 
-	if err := goose.RunMigrations(conf, conf.MigrationsDir, current); err != nil {
+	if err := pkg.RunMigrations(conf, conf.MigrationsDir, current); err != nil {
 		log.Fatal(err)
 	}
 }

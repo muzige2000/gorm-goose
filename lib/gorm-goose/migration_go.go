@@ -97,7 +97,7 @@ import (
 	"encoding/gob"
 
 	_ "{{.Import}}"
-	goose "github.com/Altoros/gorm-goose/lib/gorm-goose"
+	goose "github.com/muzige2000/gorm-goose/lib/gorm-goose"
 )
 
 func main() {

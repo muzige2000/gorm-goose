@@ -3,11 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/muzige2000/gorm-goose/lib/gorm-goose"
 	"os"
 	"strings"
 	"text/template"
-
-	goose "github.com/Altoros/gorm-goose/lib/gorm-goose"
 )
 
 // global options. available to any subcommands.
@@ -16,8 +15,8 @@ var flagEnv = flag.String("env", "development", "which DB environment to use")
 var flagPgSchema = flag.String("pgschema", "", "which postgres-schema to migrate (default = none)")
 
 // helper to create a DBConf from the given flags
-func dbConfFromFlags() (dbconf *goose.DBConf, err error) {
-	return goose.NewDBConf(*flagPath, *flagEnv, *flagPgSchema)
+func dbConfFromFlags() (dbconf *gormgoose.DBConf, err error) {
+	return gormgoose.NewDBConf(*flagPath, *flagEnv, *flagPgSchema)
 }
 
 var commands = []*Command{
