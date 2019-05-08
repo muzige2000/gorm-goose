@@ -26,6 +26,7 @@ var commands = []*Command{
 	statusCmd,
 	createCmd,
 	dbVersionCmd,
+	mergeCmd,
 }
 
 func main() {
