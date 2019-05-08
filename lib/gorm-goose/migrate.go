@@ -72,13 +72,14 @@ func RunMigrationsOnDb(conf *DBConf, migrationsDir string, target int64, db *gor
 		return err
 	}
 
+	direction := current < target
+
 	if len(migrations) == 0 {
-		fmt.Printf("goose: no migrations to run. current version: %d\n", current)
+		fmt.Printf("goose: no migrations to run. current version: %d, target: %d, direction: %t\n", current, target, direction)
 		return nil
 	}
 
 	ms := migrationSorter(migrations)
-	direction := current < target
 	ms.Sort(direction)
 
 	fmt.Printf("goose: migrating db environment '%v', current version: %d, target: %d\n",
@@ -268,7 +269,7 @@ func NumericComponent(name string) (int64, error) {
 // Create and initialize the DB version table if it doesn't exist.
 func EnsureDBVersion(conf *DBConf, db *gorm.DB) (int64, error) {
 	rows := make([]MigrationRecord, 0)
-	err := db.Order("version_id desc").Where("is_applied is true").Find(&rows).Error
+	err := db.Order("version_id desc").Find(&rows).Error
 
 	if err != nil {
 		return 0, createVersionTable(conf, db)
