@@ -267,8 +267,8 @@ func NumericComponent(name string) (int64, error) {
 // EnsureDBVersion retrieve the current version for this DB.
 // Create and initialize the DB version table if it doesn't exist.
 func EnsureDBVersion(conf *DBConf, db *gorm.DB) (int64, error) {
-	rows := []MigrationRecord{}
-	err := db.Order("version_id desc").Find(&rows).Error
+	rows := make([]MigrationRecord, 0)
+	err := db.Order("version_id desc").Where("is_applied is true").Find(&rows).Error
 
 	if err != nil {
 		return 0, createVersionTable(conf, db)
@@ -309,7 +309,7 @@ func EnsureDBVersion(conf *DBConf, db *gorm.DB) (int64, error) {
 // EnsureDBVersion retrieve the current version for this DB.
 // Create and initialize the DB version table if it doesn't exist.
 func MigrationRecords(conf *DBConf, db *gorm.DB) (ms []MigrationRecord, err error) {
-	err = db.Order("version_id desc").Find(&ms).Error
+	err = db.Order("version_id desc").Where("is_applied is false").Find(&ms).Error
 
 	if err != nil {
 		return ms, createVersionTable(conf, db)
