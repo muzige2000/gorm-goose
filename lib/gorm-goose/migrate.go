@@ -189,7 +189,7 @@ func CollectMigrations(dirpath string, current, target int64) (m []*Migration, e
 
 // collect all the not migrated migration scirpts in the migrations folder, and by version
 func NeedMigrations(dirPath string, currentMigrations []MigrationRecord) (m []*Migration, err error) {
-	res := underscore.IndexBy(currentMigrations, "Version").(map[int64]MigrationRecord)
+	res := underscore.IndexBy(currentMigrations, "VersionId").(map[int64]MigrationRecord)
 
 	err = filepath.Walk(dirPath, func(name string, info os.FileInfo, err error) error {
 		if v, e := NumericComponent(name); e == nil {
