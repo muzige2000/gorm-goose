@@ -310,7 +310,7 @@ func EnsureDBVersion(conf *DBConf, db *gorm.DB) (int64, error) {
 // EnsureDBVersion retrieve the current version for this DB.
 // Create and initialize the DB version table if it doesn't exist.
 func MigrationRecords(conf *DBConf, db *gorm.DB) (ms []MigrationRecord, err error) {
-	err = db.Order("version_id desc").Where("is_applied is false").Find(&ms).Error
+	err = db.Order("version_id desc").Where("is_applied is true").Find(&ms).Error
 
 	if err != nil {
 		return ms, createVersionTable(conf, db)
