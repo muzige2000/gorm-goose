@@ -25,7 +25,8 @@ var (
 )
 
 type MigrationRecord struct {
-	Version   int64     `gorm:"primary_key"`
+	ID        uint      `gorm:"primary_key"`
+	VersionId int64     `gorm:"unique"`
 	TStamp    time.Time `gorm:"default: now()"`
 	IsApplied bool      // was this a result of up() or down()
 }
@@ -127,7 +128,7 @@ func RunMergeMigrationsOnDb(conf *DBConf, migrationsDir string, db *gorm.DB) (er
 
 	lastMigrationRecord := underscore.Last(migrationRecords).(MigrationRecord)
 	if len(migrations) == 0 {
-		fmt.Printf("goose: no migrations to run. migrationRecords version: %d\n", lastMigrationRecord.Version)
+		fmt.Printf("goose: no migrations to run. migrationRecords version: %d\n", lastMigrationRecord.VersionId)
 		return nil
 	}
 
@@ -135,7 +136,7 @@ func RunMergeMigrationsOnDb(conf *DBConf, migrationsDir string, db *gorm.DB) (er
 	ms.Sort(true)
 
 	fmt.Printf("goose: migrating db environment '%v', migrationRecords version: %d\n",
-		conf.Env, lastMigrationRecord.Version)
+		conf.Env, lastMigrationRecord.VersionId)
 
 	for _, m := range ms {
 
@@ -267,7 +268,7 @@ func NumericComponent(name string) (int64, error) {
 // Create and initialize the DB version table if it doesn't exist.
 func EnsureDBVersion(conf *DBConf, db *gorm.DB) (int64, error) {
 	rows := []MigrationRecord{}
-	err := db.Order("version desc").Find(&rows).Error
+	err := db.Order("version_id desc").Find(&rows).Error
 
 	if err != nil {
 		return 0, createVersionTable(conf, db)
@@ -283,7 +284,7 @@ func EnsureDBVersion(conf *DBConf, db *gorm.DB) (int64, error) {
 		// have we already marked this version to be skipped?
 		skip := false
 		for _, v := range toSkip {
-			if v == row.Version {
+			if v == row.VersionId {
 				skip = true
 				break
 			}
@@ -295,11 +296,11 @@ func EnsureDBVersion(conf *DBConf, db *gorm.DB) (int64, error) {
 
 		// if version has been applied we're done
 		if row.IsApplied {
-			return row.Version, nil
+			return row.VersionId, nil
 		}
 
 		// latest version of migration has not been applied.
-		toSkip = append(toSkip, row.Version)
+		toSkip = append(toSkip, row.VersionId)
 	}
 
 	panic("failure in EnsureDBVersion()")
@@ -308,7 +309,7 @@ func EnsureDBVersion(conf *DBConf, db *gorm.DB) (int64, error) {
 // EnsureDBVersion retrieve the current version for this DB.
 // Create and initialize the DB version table if it doesn't exist.
 func MigrationRecords(conf *DBConf, db *gorm.DB) (ms []MigrationRecord, err error) {
-	err = db.Order("version desc").Find(&ms).Error
+	err = db.Order("version_id desc").Find(&ms).Error
 
 	if err != nil {
 		return ms, createVersionTable(conf, db)
@@ -329,7 +330,7 @@ func createVersionTable(conf *DBConf, db *gorm.DB) error {
 		return err
 	}
 
-	record := MigrationRecord{Version: 0, IsApplied: true}
+	record := MigrationRecord{VersionId: 0, IsApplied: true}
 	if err := txn.Create(&record).Error; err != nil {
 		txn.Rollback()
 		return err
@@ -448,8 +449,11 @@ func CreateMigration(name, migrationType, dir string, t time.Time) (path string,
 func FinalizeMigration(conf *DBConf, txn *gorm.DB, direction bool, v int64) error {
 
 	// XXX: drop goose_db_version table on some minimum version number?
-	record := MigrationRecord{Version: v, IsApplied: direction}
-	if err := txn.Create(&record).Error; err != nil {
+	record := MigrationRecord{VersionId: v}
+	txn.FirstOrInit(&record)
+	record.IsApplied = direction
+
+	if err := txn.Save(&record).Error; err != nil {
 		txn.Rollback()
 		return err
 	}
