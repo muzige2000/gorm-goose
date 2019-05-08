@@ -103,8 +103,19 @@ func RunMigrationsOnDb(conf *DBConf, migrationsDir string, target int64, db *gor
 	return nil
 }
 
+func RunMergeMigrations(conf *DBConf, migrationsDir string) (err error) {
+
+	db, err := OpenDBFromDBConf(conf)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	return RunMergeMigrationsOnDb(conf, migrationsDir, db)
+}
+
 // Runs merge migration on a specific database instance.
-func RunMergeMigrations(conf *DBConf, migrationsDir string, db *gorm.DB) (err error) {
+func RunMergeMigrationsOnDb(conf *DBConf, migrationsDir string, db *gorm.DB) (err error) {
 	migrationRecords, err := MigrationRecords(conf, db)
 	if err != nil {
 		return err
