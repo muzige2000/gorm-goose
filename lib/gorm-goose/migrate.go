@@ -449,8 +449,8 @@ func CreateMigration(name, migrationType, dir string, t time.Time) (path string,
 func FinalizeMigration(conf *DBConf, txn *gorm.DB, direction bool, v int64) error {
 
 	// XXX: drop goose_db_version table on some minimum version number?
-	record := MigrationRecord{VersionId: v}
-	txn.FirstOrInit(&record)
+	record := MigrationRecord{}
+	txn.FirstOrCreate(&record, MigrationRecord{VersionId: v})
 	record.IsApplied = direction
 
 	if err := txn.Save(&record).Error; err != nil {
