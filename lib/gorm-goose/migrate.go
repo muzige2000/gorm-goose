@@ -304,6 +304,7 @@ func MigrationRecords(conf *DBConf, db *gorm.DB) (ms []MigrationRecord, err erro
 	if err != nil {
 		return ms, createVersionTable(conf, db)
 	}
+	return ms, err
 }
 
 // Create the goose_db_version table
@@ -351,7 +352,7 @@ func GetPreviousDBVersion(dirpath string, version int64) (previous int64, err er
 	previous = -1
 	sawGivenVersion := false
 
-	filepath.Walk(dirpath, func(name string, info os.FileInfo, walkerr error) error {
+	err = filepath.Walk(dirpath, func(name string, info os.FileInfo, walkerr error) error {
 
 		if !info.IsDir() {
 			if v, e := NumericComponent(name); e == nil {
@@ -387,7 +388,7 @@ func GetMostRecentDBVersion(dirpath string) (version int64, err error) {
 
 	version = -1
 
-	filepath.Walk(dirpath, func(name string, info os.FileInfo, walkerr error) error {
+	err = filepath.Walk(dirpath, func(name string, info os.FileInfo, walkerr error) error {
 		if walkerr != nil {
 			return walkerr
 		}
