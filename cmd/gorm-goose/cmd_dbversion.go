@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	gormgoose "github.com/muzige2000/gorm-goose/lib/gorm-goose"
 	"log"
 )
 
@@ -19,7 +20,7 @@ func dbVersionRun(cmd *Command, args ...string) {
 		log.Fatal(err)
 	}
 
-	current, err := pkg.GetDBVersion(conf)
+	current, err := gormgoose.GetDBVersion(conf)
 	if err != nil {
 		log.Fatal(err)
 	}

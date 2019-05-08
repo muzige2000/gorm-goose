@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	gormgoose "github.com/muzige2000/gorm-goose/lib/gorm-goose"
 	"log"
 	"path/filepath"
 	"time"
@@ -32,19 +33,19 @@ func statusRun(cmd *Command, args ...string) {
 	// collect all migrations
 	min := int64(0)
 	max := int64((1 << 63) - 1)
-	migrations, e := pkg.CollectMigrations(conf.MigrationsDir, min, max)
+	migrations, e := gormgoose.CollectMigrations(conf.MigrationsDir, min, max)
 	if e != nil {
 		log.Fatal(e)
 	}
 
-	db, e := pkg.OpenDBFromDBConf(conf)
+	db, e := gormgoose.OpenDBFromDBConf(conf)
 	if e != nil {
 		log.Fatal("couldn't open DB:", e)
 	}
 	defer db.Close()
 
 	// must ensure that the version table exists if we're running on a pristine DB
-	if _, e := pkg.EnsureDBVersion(conf, db); e != nil {
+	if _, e := gormgoose.EnsureDBVersion(conf, db); e != nil {
 		log.Fatal(e)
 	}
 
@@ -57,7 +58,7 @@ func statusRun(cmd *Command, args ...string) {
 }
 
 func printMigrationStatus(db *gorm.DB, version int64, script string) {
-	row := pkg.MigrationRecord{}
+	row := gormgoose.MigrationRecord{}
 	result := db.Where("version_id = ?", version).Order("t_stamp desc").First(&row)
 
 	if result.Error != nil && !result.RecordNotFound() {

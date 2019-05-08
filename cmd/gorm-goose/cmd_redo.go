@@ -1,6 +1,7 @@
 package main
 
 import (
+	gormgoose "github.com/muzige2000/gorm-goose/lib/gorm-goose"
 	"log"
 )
 
@@ -18,21 +19,21 @@ func redoRun(cmd *Command, args ...string) {
 		log.Fatal(err)
 	}
 
-	current, err := pkg.GetDBVersion(conf)
+	current, err := gormgoose.GetDBVersion(conf)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	previous, err := pkg.GetPreviousDBVersion(conf.MigrationsDir, current)
+	previous, err := gormgoose.GetPreviousDBVersion(conf.MigrationsDir, current)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := pkg.RunMigrations(conf, conf.MigrationsDir, previous); err != nil {
+	if err := gormgoose.RunMigrations(conf, conf.MigrationsDir, previous); err != nil {
 		log.Fatal(err)
 	}
 
-	if err := pkg.RunMigrations(conf, conf.MigrationsDir, current); err != nil {
+	if err := gormgoose.RunMigrations(conf, conf.MigrationsDir, current); err != nil {
 		log.Fatal(err)
 	}
 }
